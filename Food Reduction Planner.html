@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Reduction Planner</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#f4fff4;
+    padding:20px;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+    color:#1b5e20;
+    margin-bottom:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom:20px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    background:#2e7d32;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+button:hover{
+    background:#1b5e20;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+table th{
+    background:#2e7d32;
+    color:white;
+}
+
+table th,table td{
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:center;
+}
+
+.alert{
+    color:red;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+.good{
+    color:green;
+    font-weight:bold;
+}
+
+.score{
+    font-size:22px;
+    color:#1b5e20;
+    text-align:center;
+    margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>🌱 Food Reduction Planner</h1>
+
+<div class="card">
+<h2>Add Food Item</h2>
+
+<input type="text" id="foodName" placeholder="Food Name">
+
+<input type="number" id="quantity" placeholder="Quantity">
+
+<input type="date" id="expiryDate">
+
+<button onclick="addFood()">Add Item</button>
+</div>
+
+<div class="card">
+<h2>Food Inventory</h2>
+
+<table id="foodTable">
+<tr>
+<th>Food Item</th>
+<th>Quantity</th>
+<th>Expiry Date</th>
+<th>Status</th>
+</tr>
+</table>
+</div>
+
+<div class="card">
+<h2>AI Analysis</h2>
+
+<div id="alerts"></div>
+
+<div id="mealSuggestion"></div>
+
+<div class="score" id="score"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let foodItems=[];
+
+function addFood(){
+
+let food=document.getElementById("foodName").value;
+let quantity=document.getElementById("quantity").value;
+let expiry=document.getElementById("expiryDate").value;
+
+if(food==="" || quantity==="" || expiry===""){
+    alert("Please fill all fields");
+    return;
+}
+
+foodItems.push({
+    food,
+    quantity,
+    expiry
+});
+
+document.getElementById("foodName").value="";
+document.getElementById("quantity").value="";
+document.getElementById("expiryDate").value="";
+
+displayFood();
+analyzeFood();
+}
+
+function displayFood(){
+
+let table=document.getElementById("foodTable");
+
+table.innerHTML=`
+<tr>
+<th>Food Item</th>
+<th>Quantity</th>
+<th>Expiry Date</th>
+<th>Status</th>
+</tr>
+`;
+
+foodItems.forEach(item=>{
+
+let today=new Date();
+let expiryDate=new Date(item.expiry);
+
+let diff=Math.ceil(
+(expiryDate-today)/(1000*60*60*24)
+);
+
+let status="Safe";
+
+if(diff<=2){
+status="⚠ Expiring Soon";
+}
+
+table.innerHTML+=`
+<tr>
+<td>${item.food}</td>
+<td>${item.quantity}</td>
+<td>${item.expiry}</td>
+<td>${status}</td>
+</tr>
+`;
+});
+}
+
+function analyzeFood(){
+
+let alerts=document.getElementById("alerts");
+let meal=document.getElementById("mealSuggestion");
+let score=document.getElementById("score");
+
+alerts.innerHTML="";
+meal.innerHTML="";
+
+let expiringFoods=[];
+
+foodItems.forEach(item=>{
+
+let today=new Date();
+let expiryDate=new Date(item.expiry);
+
+let diff=Math.ceil(
+(expiryDate-today)/(1000*60*60*24)
+);
+
+if(diff<=2){
+expiringFoods.push(item.food);
+}
+});
+
+if(expiringFoods.length>0){
+
+alerts.innerHTML=
+"<p class='alert'>⚠ Use Soon: "+
+expiringFoods.join(", ")+
+"</p>";
+
+meal.innerHTML=
+"<p><b>AI Meal Suggestion:</b> Create meals using " +
+expiringFoods.join(", ") +
+" before they expire.</p>";
+
+}
+else{
+
+alerts.innerHTML=
+"<p class='good'>✅ No food items are close to expiry.</p>";
+
+meal.innerHTML=
+"<p><b>AI Recommendation:</b> Current inventory is well managed.</p>";
+}
+
+let scoreValue=Math.max(
+100-(expiringFoods.length*20),
+0
+);
+
+score.innerHTML=
+"Food Sustainability Score: "+scoreValue+"/100";
+
+}
+
+</script>
+
+</body>
+</html>
